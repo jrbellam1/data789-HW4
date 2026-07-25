@@ -1,18 +1,17 @@
-# HW4 — Short Answers
+# HW4 Short Answers
 
-Answer each question in 2–3 sentences.
+## 1. Why maxUnavailable: 0?
 
-## 1. Rolling-update safety
-Why does the Deployment use `maxUnavailable: 0`, and what would change if it were `maxUnavailable: 1`?
+maxUnavailable: 0 keeps all 3 pods available during updates by requiring new pods to pass readiness checks before old ones shut down. This prevents dropped requests. At maxUnavailable: 1, one pod can terminate early, speeding up the rollout but risking capacity loss if the new pod fails health checks.
 
-> With `maxUnavailable: 0`, Kubernetes must bring up new pods and wait until they pass readiness checks before removing any old pod, so all 3 replicas stay available throughout the rollout and no in-flight requests are dropped. If it were `maxUnavailable: 1`, one old pod could be terminated before its replacement is ready, which allows a faster rollout but risks temporarily reducing capacity and losing requests if the new pod fails its health checks.
+## 2. Why /health instead of /predict?
 
-## 2. Health probes
-Why do the liveness/readiness probes target `/health` instead of `/predict`?
+/health is lightweight and doesn't touch Redis or the ML model, keeping probes fast and cheap. /predict is expensive and user-facing, so using it for probes wastes resources and adds unnecessary load to real traffic.
 
-> `/health` is a lightweight check that reports the pod is up without touching Redis or the ML model, so it stays fast and cheap for the kubelet to call frequently. `/predict` is the expensive, user-facing endpoint that loads the model and calls out to Redis, so using it for probes would add unnecessary load, slow down real traffic, and could cause false failures unrelated to actual pod health.
+## 3. HPA at capacity
 
+If traffic doubles, CPU rises above 40% and HPA scales up toward 8 replicas. Once maxed out, HPA can't scale further, so latency increases and requests queue until demand drops.
 
-## Note on rolling-update test observation
+## Azure deployment blocker
 
-> During two separate rolling-update test runs (each sending one request per second via a curl loop pod), one single request out of ~148 total returned a connection error (HTTP 000) instead of 200, even with `maxUnavailable: 0`. This appears consistent across both runs, suggesting a brief kube-proxy/iptables routing gap during pod termination rather than random chance. 147/148 (and 147/148 on the repeat run) requests succeeded with no downtime otherwise observed.
+Part 3 (Azure deployment) failed due to subscription region restrictions. The free tier subscription only allows certain regions (westus3, canadacentral, northcentralus, southcentralus), and deploy_azure.sh defaults to centralus and eastus2, both blocked. Parts 1 and 2 (local Kubernetes with rolling update and blue-green deployment) are complete with screenshots.
