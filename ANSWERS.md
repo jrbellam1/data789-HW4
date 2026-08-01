@@ -12,6 +12,6 @@ maxUnavailable: 0 keeps all 3 pods available during updates by requiring new pod
 
 If traffic doubles, CPU rises above 40% and HPA scales up toward 8 replicas. Once maxed out, HPA can't scale further, so latency increases and requests queue until demand drops.
 
-## Azure deployment blocker
+## Azure deployment notes
 
-Part 3 (Azure deployment) failed due to subscription region restrictions. The free tier subscription only allows certain regions (westus3, canadacentral, northcentralus, southcentralus), and deploy_azure.sh defaults to centralus and eastus2, both blocked. Parts 1 and 2 (local Kubernetes with rolling update and blue-green deployment) are complete with screenshots.
+Part 3 (Azure deployment) required editing config.env to use canadacentral region due to subscription restrictions on eastus2, eastus, and centralus. Successfully deployed to Azure Container Apps and verified /predict endpoint returned 200 with fraud predictions.
